@@ -2,7 +2,7 @@
 
 A community-maintained database of Sub-GHz signal files (`.sub`) recorded with the [Flipper Zero](https://flipperzero.one/). Browse, download, and contribute signals through a clean static web interface — no backend required.
 
-**Live site:** [og34.github.io/flipper-signal-db](https://og34.github.io/flipper-signal-db)
+**Live site:** [louloupexe.github.io/flipper-signal-db](https://louloupexe.github.io/flipper-signal-db)
 
 ---
 
@@ -11,6 +11,8 @@ A community-maintained database of Sub-GHz signal files (`.sub`) recorded with t
 - 🔍 **Search** by signal name, frequency, or protocol
 - 🏷️ **Filter** by category (garage doors, car keys, intercoms, weather stations, custom)
 - 📥 **Download** `.sub` files directly from the browser
+- 📲 **Send** signals directly to Flipper Zero via Web Serial API
+- 🔄 **Convert** BINRAW Sub-GHz files to RAW format directly on the site
 - 📬 **Contribute** new signals via Pull Request
 
 ---
@@ -40,6 +42,7 @@ flipper-signal-db/
 | Car Keys | `car_keys` |
 | Intercoms | `intercoms` |
 | Weather Stations | `weather_stations` |
+| Jamming | `jamming` |
 | Custom / Unknown | `custom` |
 
 ---
@@ -50,6 +53,7 @@ Each signal is an object in the top-level array:
 
 ```json
 {
+  "file":        "garage_door_433.sub",
   "name":        "Generic Garage Door 433MHz",
   "frequency":   "433.92 MHz",
   "protocol":    "OOK",
@@ -57,12 +61,14 @@ Each signal is an object in the top-level array:
   "category":    "garage_doors",
   "region":      "eu",
   "contributor": "your_github_username",
-  "filename":    "garage_door_433.sub"
+  "filename":    "garage_door_433.sub",
+  "test_status": "works"
 }
 ```
 
 | Field | Description |
 |---|---|
+| `file` | Basename of the `.sub` file inside `signals/` |
 | `name` | Short, human-readable signal name |
 | `frequency` | e.g. `"433.92 MHz"` or `"315.00 MHz"` |
 | `protocol` | e.g. `"OOK"`, `"Princeton"`, `"RAW"`, `"Acurite-609TXC"` |
@@ -70,7 +76,9 @@ Each signal is an object in the top-level array:
 | `category` | One of the category keys above |
 | `region` | `"eu"` (433/868 MHz), `"us"` (315/433/915 MHz), or `"global"` |
 | `contributor` | Your GitHub username |
-| `filename` | Basename of the `.sub` file inside `signals/` |
+| `filename` | (Legacy) Same as `file`, kept for backwards compatibility |
+| `test_status`| One of `"tested"`, `"works"`, `"untested"`, `"converted_from_binraw"` |
+| `converted_status`| (Optional) One of `"tested"`, `"works"`, `"untested"` (if converted) |
 
 ### Regions & Frequencies
 
@@ -86,7 +94,7 @@ Each signal is an object in the top-level array:
 
 ### Option A — GitHub web UI (easiest)
 
-1. [Fork this repository](https://github.com/og34/flipper-signal-db/fork).
+1. [Fork this repository](https://github.com/louloupexe/flipper-signal-db/fork).
 2. Upload your `.sub` file to the `signals/` folder via the GitHub file editor.
 3. Edit `signals.json` and append a new entry for your signal.
 4. Open a Pull Request against `main`.
@@ -111,7 +119,7 @@ Then open a Pull Request on GitHub.
 ### Guidelines
 
 - ✅ Include accurate frequency and protocol information.
-- ✅ Use a descriptive `filename` (e.g. `brand_model_freq.sub`).
+- ✅ Use a descriptive `file` name (e.g. `brand_model_freq.sub`).
 - ✅ Write a clear `description` — what device, what action, where captured.
 - ❌ Do not submit signals for devices or frequencies you do not own or have explicit permission to capture.
 - ❌ Do not submit rolling-code signals that could compromise real-world security systems.
@@ -132,6 +140,21 @@ npx serve .
 
 # Then open http://localhost:8080
 ```
+
+---
+
+## Signal Validation
+
+We use an automated validation script to ensure that entries are correctly mapped and valid:
+
+- `npm run validate-signals`: Performs full checks to ensure every signal has a valid metadata entry, no duplicate names/filenames exist, and all files exist inside `signals/`.
+
+Before submitting a Pull Request, please run:
+```bash
+npm run validate-signals
+```
+
+A GitHub Action will automatically run these validation checks on every Push and Pull Request to prevent broken configurations.
 
 ---
 
